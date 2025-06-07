@@ -1,0 +1,20 @@
+services:
+  derper:
+    image: ghcr.io/<TU_USUARIO>/derper:latest   # imagen que publicará el CI
+    container_name: tailscale-derper
+    restart: unless-stopped
+
+    ports:
+      - "3478:3478/udp"
+      - "8443:8443/tcp"
+
+    volumes:
+      - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro              # ajusta esta ruta
+
+    environment:
+      DERP_ADDR: ":3478"
+      DERP_STUN_PORT: "3478"
+      DERP_HTTPS_PORT: "8443"
+      DERP_CERT: "/certs/cert.pem"
+      DERP_KEY:  "/certs/key.pem"
+      DERP_EXTRA: "-hostname derp.saiyans.com.ve"
