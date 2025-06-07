@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  packages: write      # subir a GHCR
+  packages: write
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/setup-qemu-action@v3        # emulación arm64
+      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
@@ -26,30 +26,20 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ─── build temporal solo amd64 para extraer versión ───
-      - name: Build amd64 (local load)
-        run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            -t derp-temp:${{ github.sha }} \
-            --load .
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/derper
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{date 'YYYYMMDD'}}-
 
-      - name: Get derper version
-        id: ver
-        run: |
-          v=$(docker run --rm derp-temp:${{ github.sha }} -version | awk '{print $2}')
-          echo "tag=$v" >> $GITHUB_OUTPUT
-
-      # ─── build & push multiplataforma ───
       - name: Build & push multi-arch
-        run: |
-          IMG=ghcr.io/${{ github.repository_owner }}/derper
-          TAG=${{ steps.ver.outputs.tag }}
-          docker buildx build \
-            --platform linux/amd64,linux/arm64 \
-            -t ${IMG}:${TAG} \
-            -t ${IMG}:latest \
-            --push .
-
-      - name: Clean temp image
-        run: docker rmi derp-temp:${{ github.sha }} || true
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
