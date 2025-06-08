@@ -9,7 +9,8 @@ services:
       - "8443:443/tcp"
 
     volumes:
-      - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro          
+      - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
+      - derper_data:/home/derper/.cache/tailscale/derper         
 
     environment:
       DERP_ADDR: ":443"                 
@@ -20,4 +21,6 @@ services:
       DERP_CERTMODE: "manual"                  
       DERP_CERTDIR: "/certs"                  
     
-  
+volumes:
+  derper_data:
+    driver: local
