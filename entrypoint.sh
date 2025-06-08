@@ -23,7 +23,7 @@ if [ -n "$DERP_ADDR" ]; then
     ARGS="$ARGS -a=$DERP_ADDR"
 fi
 
-# Puerto HTTPS específico
+# Puerto HTTP específico (disable con -1)
 if [ -n "$DERP_HTTPS_PORT" ]; then
     ARGS="$ARGS -http-port=$DERP_HTTPS_PORT"
 fi
@@ -43,29 +43,14 @@ if [ -n "$DERP_CERTMODE" ]; then
     ARGS="$ARGS -certmode=$DERP_CERTMODE"
 fi
 
-# Directorio de certificados
+# Directorio de certificados (solo este, no archivos específicos)
 if [ -n "$DERP_CERTDIR" ]; then
     ARGS="$ARGS -certdir=$DERP_CERTDIR"
 fi
 
-# Certificado específico
-if [ -n "$DERP_CERT" ]; then
-    ARGS="$ARGS -cert=$DERP_CERT"
-fi
-
-# Clave privada específica
-if [ -n "$DERP_KEY" ]; then
-    ARGS="$ARGS -key=$DERP_KEY"
-fi
-
-# Verificar que los certificados existan
-if [ -n "$DERP_CERT" ] && [ ! -f "$DERP_CERT" ]; then
-    log "ERROR: Certificate file not found: $DERP_CERT"
-    exit 1
-fi
-
-if [ -n "$DERP_KEY" ] && [ ! -f "$DERP_KEY" ]; then
-    log "ERROR: Private key file not found: $DERP_KEY"
+# Verificar que el directorio de certificados exista
+if [ -n "$DERP_CERTDIR" ] && [ ! -d "$DERP_CERTDIR" ]; then
+    log "ERROR: Certificate directory not found: $DERP_CERTDIR"
     exit 1
 fi
 

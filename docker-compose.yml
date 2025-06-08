@@ -9,12 +9,14 @@ services:
       - "8443:443/tcp"
 
     volumes:
-      - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro              # ajusta esta ruta
+      - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro          
 
     environment:
-      DERP_ADDR: ":3478"
-      DERP_STUN_PORT: "3478"
-      DERP_HTTPS_PORT: "443"
-      DERP_CERT: "/certs/cert.pem"
-      DERP_KEY:  "/certs/key.pem"
-      DERP_EXTRA: "-hostname derp.saiyans.com.ve"
+      DERP_ADDR: ":443"                     
+      DERP_STUN: "true"                    
+      DERP_STUN_PORT: "3478"                  
+      DERP_HTTPS_PORT: "-1"                    
+      DERP_CERTMODE: "manual"                  
+      DERP_CERTDIR: "/certs"                  
+      DERP_EXTRA: "-hostname derp.saiyans.com.ve"  
+  

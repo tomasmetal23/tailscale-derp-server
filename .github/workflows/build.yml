@@ -2,7 +2,7 @@ name: Build & publish multi-arch (amd64 + arm64) DERP image
 
 on:
   push:
-    paths: ['Dockerfile']
+    paths: ['entrypoint.sh', 'Dockerfile']
   workflow_dispatch:
 
 permissions:
