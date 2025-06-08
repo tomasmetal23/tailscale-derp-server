@@ -1,6 +1,6 @@
 services:
   derper:
-    image: ghcr.io/<TU_USUARIO>/derper:latest   # imagen que publicará el CI
+    image: docker pull ghcr.io/tomasmetal23/derper:20250608-d6bd46b
     container_name: tailscale-derper
     restart: unless-stopped
 
