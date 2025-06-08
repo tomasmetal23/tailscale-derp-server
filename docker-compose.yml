@@ -12,11 +12,12 @@ services:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro          
 
     environment:
-      DERP_ADDR: ":443"                     
+      DERP_ADDR: ":443"                 
+      DERP_HOSTNAME: "derp.saiyans.com.ve"    
       DERP_STUN: "true"                    
       DERP_STUN_PORT: "3478"                  
       DERP_HTTPS_PORT: "-1"                    
       DERP_CERTMODE: "manual"                  
       DERP_CERTDIR: "/certs"                  
-      DERP_EXTRA: "-hostname derp.saiyans.com.ve"  
+    
   

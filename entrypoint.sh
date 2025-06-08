@@ -1,66 +1,42 @@
 #!/bin/sh
 set -e
 
-# Función para logging
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
 log "Starting DERP server configuration..."
 
-# Construir argumentos dinámicamente
-ARGS=""
+# Crear archivo de configuración
+CONFIG_FILE="/tmp/derper.json"
+HOSTNAME="${DERP_HOSTNAME:-derp.saiyans.com.ve}"
 
-# Hostname (prioritario desde DERP_EXTRA si está presente)
-if [ -n "$DERP_HOSTNAME" ]; then
-    ARGS="$ARGS -hostname=$DERP_HOSTNAME"
-elif [ -n "$DERP_DOMAIN" ]; then
-    ARGS="$ARGS -hostname=$DERP_DOMAIN"
-fi
+log "Creating configuration file..."
+log "Hostname: $HOSTNAME"
+log "Address: ${DERP_ADDR:-:443}"
+log "Cert directory: ${DERP_CERTDIR:-/certs}"
 
-# Dirección de escucha
-if [ -n "$DERP_ADDR" ]; then
-    ARGS="$ARGS -a=$DERP_ADDR"
-fi
+# Generar el archivo de configuración JSON
+cat > "$CONFIG_FILE" << EOF
+{
+  "hostname": "$HOSTNAME",
+  "addr": "${DERP_ADDR:-:443}",
+  "stun": ${DERP_STUN:-true},
+  "stun_port": ${DERP_STUN_PORT:-3478},
+  "http_port": ${DERP_HTTPS_PORT:--1},
+  "cert_mode": "${DERP_CERTMODE:-manual}",
+  "cert_dir": "${DERP_CERTDIR:-/certs}"
+}
+EOF
 
-# Puerto HTTP específico (disable con -1)
-if [ -n "$DERP_HTTPS_PORT" ]; then
-    ARGS="$ARGS -http-port=$DERP_HTTPS_PORT"
-fi
+log "Generated configuration:"
+cat "$CONFIG_FILE"
 
-# STUN habilitado
-if [ "$DERP_STUN" = "true" ]; then
-    ARGS="$ARGS -stun"
-fi
-
-# Puerto STUN específico
-if [ -n "$DERP_STUN_PORT" ]; then
-    ARGS="$ARGS -stun-port=$DERP_STUN_PORT"
-fi
-
-# Modo de certificados
-if [ -n "$DERP_CERTMODE" ]; then
-    ARGS="$ARGS -certmode=$DERP_CERTMODE"
-fi
-
-# Directorio de certificados (solo este, no archivos específicos)
-if [ -n "$DERP_CERTDIR" ]; then
-    ARGS="$ARGS -certdir=$DERP_CERTDIR"
-fi
-
-# Verificar que el directorio de certificados exista
-if [ -n "$DERP_CERTDIR" ] && [ ! -d "$DERP_CERTDIR" ]; then
-    log "ERROR: Certificate directory not found: $DERP_CERTDIR"
+# Verificar directorio de certificados
+if [ ! -d "${DERP_CERTDIR:-/certs}" ]; then
+    log "ERROR: Certificate directory not found: ${DERP_CERTDIR:-/certs}"
     exit 1
 fi
 
-# Argumentos extra (se añaden al final)
-if [ -n "$DERP_EXTRA" ]; then
-    ARGS="$ARGS $DERP_EXTRA"
-fi
-
-log "DERP server arguments: $ARGS"
-log "Starting DERP server..."
-
-# Ejecutar derper con los argumentos construidos
-exec /usr/local/bin/derper $ARGS
+log "Starting DERP server with configuration file..."
+exec /usr/local/bin/derper -c "$CONFIG_FILE"
