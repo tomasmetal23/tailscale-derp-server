@@ -23,15 +23,24 @@ ENV DERP_DOMAIN="localhost" \
     DERP_ADDR=":443" \
     DERP_STUN="true" \
     DERP_CERTMODE="manual" \
-    DERP_CERTDIR="/app/certs" \
+    DERP_CERTDIR="/certs" \
     DERP_HOSTNAME="" \
     DERP_STUN_PORT="3478" \
+    DERP_HTTPS_PORT="443" \
+    DERP_CERT="" \
     DERP_KEY="" \
     DERP_EXTRA=""
 
 COPY --from=builder /src/derper /usr/local/bin/derper
 
-USER derper
-EXPOSE 8443 3478/udp
+# Copiar el script de entrada
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT ["/usr/local/bin/derper"]
+# Crear directorio para certificados
+RUN mkdir -p /certs && chown derper:derper /certs
+
+USER derper
+EXPOSE 443 3478/udp
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
