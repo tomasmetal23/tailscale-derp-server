@@ -20,4 +20,4 @@ EXPOSE 443/tcp 3478/udp
 
 # El Entrypoint es simplemente el programa que queremos ejecutar.
 # Docker le pasará las variables de entorno para que se configure solo.
-ENTRYPOINT ["/home/derper/go/bin/derper"]
+ENTRYPOINT ["/go/bin/derper"]
