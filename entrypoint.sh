@@ -44,4 +44,4 @@ cat "$CONFIG_FILE"
 # --- PUNTO CRÍTICO 3: EJECUTAMOS EL BINARIO DESDE LA RUTA CORRECTA ---
 # Y le pasamos el archivo de configuración con el flag -c
 log "Iniciando derper con el archivo de configuración..."
-exec /go/bin/derper -c "$CONFIG_FILE"
+exec /usr/local/bin/derper -c "$CONFIG_FILE"
