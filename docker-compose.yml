@@ -1,4 +1,7 @@
-# docker-compose.yml (Fuente Única de Configuración)
+# docker-compose.yml (Fuente Única de Configuración COMPLETA)
+
+version: "3.8"
+
 services:
   derper:
     image: ghcr.io/tomasmetal23/derper:latest
@@ -12,18 +15,23 @@ services:
     volumes:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
 
-    # Aquí está TODA la configuración del servidor. Un solo lugar.
+    # Aquí está TODA la configuración, sin omitir nada.
     environment:
-      # La clave secreta, la razón de todo este viaje.
+      # --- Configuración de Identidad y Red ---
       - DERP_PRIVATE_KEY=private_key:
-
-      # Configuración del servidor
       - DERP_HOSTNAME=derp.saiyans.com.ve
       - DERP_ADDR=:443
 
-      # Configuración de los certificados
+      # --- Configuración de Certificados ---
       - DERP_CERT_MODE=manual
       - DERP_CERT_DIR=/certs
 
-      # Configuración de seguridad (recomendado)
-      - DERP_VERIFY_CLIENTS=false
+      # --- ¡AQUÍ ESTÁ LO QUE FALTABA! ---
+      # Activa el servidor STUN. Equivale a -stun=true
+      - DERP_STUN=true
+      # Desactiva el servidor HTTP en el puerto 80. Equivale a -http-port=-1
+      - DERP_HTTP_PORT=-1
+
+      # --- Configuración de Seguridad ---
+      # Equivale a -verify-clients=true (o false si así lo prefieres)
+      - DERP_VERIFY_CLIENTS=true
