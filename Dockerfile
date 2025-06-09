@@ -3,6 +3,10 @@ FROM golang:1.24.0-alpine
 # Instalar dependencias necesarias
 RUN apk add --no-cache git ca-certificates tzdata
 
+# Copiar entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Crear usuario derp
 RUN adduser -D -s /bin/sh -u 1000 -h /home/derper derper
 
@@ -12,10 +16,6 @@ WORKDIR /home/derper
 
 # Instalar DERP server
 RUN go install tailscale.com/cmd/derper@main
-
-# Copiar entrypoint
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Variables de entorno por defecto
 ENV DERP_ADDR=":443"
