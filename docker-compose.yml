@@ -10,7 +10,7 @@ services:
 
     volumes:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
-      - derp_state:/state        
+      - ./state:/state       
 
     environment:
       DERP_ADDR: ":443"                 
@@ -21,5 +21,3 @@ services:
       DERP_CERTMODE: "manual"                  
       DERP_CERTDIR: "/certs"                  
     
-volumes:
-  derp_state:
