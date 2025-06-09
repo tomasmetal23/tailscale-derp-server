@@ -1,3 +1,4 @@
+# docker-compose.yml (Fuente Única de Configuración)
 services:
   derper:
     image: ghcr.io/tomasmetal23/derper:latest
@@ -11,12 +12,18 @@ services:
     volumes:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
 
+    # Aquí está TODA la configuración del servidor. Un solo lugar.
     environment:
-      DERP_ADDR: ":443"
-      DERP_HOSTNAME: "derp.saiyans.com.ve"
-      DERP_STUN: "true"
-      DERP_STUN_PORT: "3478"
-      DERP_HTTPS_PORT: "-1"
-      DERP_CERTMODE: "manual"
-      DERP_CERTDIR: "/certs"
-      DERP_VERIFY_CLIENTS: "false"
+      # La clave secreta, la razón de todo este viaje.
+      - DERP_PRIVATE_KEY=private_key:
+
+      # Configuración del servidor
+      - DERP_HOSTNAME=derp.saiyans.com.ve
+      - DERP_ADDR=:443
+
+      # Configuración de los certificados
+      - DERP_CERT_MODE=manual
+      - DERP_CERT_DIR=/certs
+
+      # Configuración de seguridad (recomendado)
+      - DERP_VERIFY_CLIENTS=false
