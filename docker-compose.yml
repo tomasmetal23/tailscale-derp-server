@@ -1,6 +1,6 @@
 services:
   derper:
-    build: .
+    image: ghcr.io/tomasmetal23/derper:latest
     container_name: tailscale-derper
     restart: unless-stopped
 
