@@ -10,7 +10,7 @@ services:
 
     volumes:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
-      - derper_data:/home/derper/.cache/tailscale/derper         
+      - derp_state:/state        
 
     environment:
       DERP_ADDR: ":443"                 
@@ -22,5 +22,4 @@ services:
       DERP_CERTDIR: "/certs"                  
     
 volumes:
-  derper_data:
-    driver: local
+  derp_state:
