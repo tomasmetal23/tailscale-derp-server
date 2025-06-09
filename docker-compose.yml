@@ -1,6 +1,6 @@
 services:
   derper:
-    image: ghcr.io/tomasmetal23/derper:latest
+    build: .
     container_name: tailscale-derper
     restart: unless-stopped
 
@@ -12,12 +12,11 @@ services:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
 
     environment:
-      DERP_ADDR: ":443"                 
-      DERP_HOSTNAME: "derp.saiyans.com.ve"    
-      DERP_STUN: "true"                    
-      DERP_STUN_PORT: "3478"                  
-      DERP_HTTPS_PORT: "-1"                    
-      DERP_CERTMODE: "manual"                  
-      DERP_CERTDIR: "/certs"      
-      DERP_VERIFY_CLIENTS: "false"        
-    
+      DERP_ADDR: ":443"
+      DERP_HOSTNAME: "derp.saiyans.com.ve"
+      DERP_STUN: "true"
+      DERP_STUN_PORT: "3478"
+      DERP_HTTPS_PORT: "-1"
+      DERP_CERTMODE: "manual"
+      DERP_CERTDIR: "/certs"
+      DERP_VERIFY_CLIENTS: "false"

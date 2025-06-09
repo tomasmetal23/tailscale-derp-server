@@ -1,48 +1,34 @@
-# Etapa de construcción
-FROM --platform=$BUILDPLATFORM golang:1.24.0-alpine AS builder
+FROM golang:1.24.0-alpine
 
-ARG TARGETOS
-ARG TARGETARCH
+# Instalar dependencias necesarias
+RUN apk add --no-cache git ca-certificates tzdata
 
-RUN apk add --no-cache git ca-certificates
+# Crear usuario derp
+RUN adduser -D -s /bin/sh -u 1000 -h /home/derper derper
 
-WORKDIR /src
+# Cambiar al usuario derper
+USER derper
+WORKDIR /home/derper
 
-# Clonar el repositorio y compilar
-RUN git clone https://github.com/tailscale/tailscale.git . && \
-    GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=0 \
-    go build -o derper ./cmd/derper
+# Instalar DERP server
+RUN go install tailscale.com/cmd/derper@main
 
-# Etapa final
-FROM alpine:3.18
-
-RUN apk add --no-cache ca-certificates tzdata && \
-    adduser -D -s /bin/sh -u 1000 -h /home/derper derper && \
-    mkdir -p /home/derper && \
-    chown derper:derper /home/derper
-
-ENV DERP_DOMAIN="localhost" \
-    DERP_ADDR=":443" \
-    DERP_STUN="true" \
-    DERP_CERTMODE="manual" \
-    DERP_CERTDIR="/certs" \
-    DERP_HOSTNAME="" \
-    DERP_STUN_PORT="3478" \
-    DERP_HTTPS_PORT="443" \
-    DERP_CERT="" \
-    DERP_KEY="" \
-    DERP_EXTRA=""
-
-COPY --from=builder /src/derper /usr/local/bin/derper
-
-# Copiar el script de entrada
+# Copiar entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Crear directorio para certificados
-RUN mkdir -p /certs && chown derper:derper /certs
+# Variables de entorno por defecto
+ENV DERP_ADDR=":443"
+ENV DERP_HOSTNAME="derp.saiyans.com.ve"
+ENV DERP_STUN="true"
+ENV DERP_STUN_PORT="3478"
+ENV DERP_HTTPS_PORT="-1"
+ENV DERP_CERTMODE="manual"
+ENV DERP_CERTDIR="/certs"
+ENV DERP_VERIFY_CLIENTS="false"
 
-USER derper
-EXPOSE 443 3478/udp
+# Exponer los puertos
+EXPOSE 443/tcp 3478/udp
 
+# Configurar entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
