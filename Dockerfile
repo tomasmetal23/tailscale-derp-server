@@ -1,5 +1,5 @@
 # Etapa de construcción
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.20.5-alpine AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -20,7 +20,7 @@ RUN apk add --no-cache ca-certificates tzdata && \
     adduser -D -s /bin/sh -u 1000 -h /home/derper derper && \
     mkdir -p /home/derper && \
     chown derper:derper /home/derper
-    
+
 ENV DERP_DOMAIN="localhost" \
     DERP_ADDR=":443" \
     DERP_STUN="true" \
