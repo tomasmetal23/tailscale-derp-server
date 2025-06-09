@@ -10,7 +10,6 @@ services:
 
     volumes:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
-      - ./state:/state       
 
     environment:
       DERP_ADDR: ":443"                 
@@ -19,5 +18,6 @@ services:
       DERP_STUN_PORT: "3478"                  
       DERP_HTTPS_PORT: "-1"                    
       DERP_CERTMODE: "manual"                  
-      DERP_CERTDIR: "/certs"                  
+      DERP_CERTDIR: "/certs"      
+      DERP_VERIFY_CLIENTS: "false"        
     
