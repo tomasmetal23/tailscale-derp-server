@@ -40,4 +40,4 @@ if [ ! -d "${DERP_CERTDIR}" ]; then
 fi
 
 log "Starting DERP server with configuration file..."
-exec /home/derper/go/bin/derper -c "$CONFIG_FILE"
+exec derper -c "$CONFIG_FILE"
