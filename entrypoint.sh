@@ -3,7 +3,7 @@
 
 set -e
 
-# Imprimir un log con fecha
+# Imprimir un log con fecha :)
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
