@@ -1,23 +1,46 @@
-# Dockerfile Simplificado (KISS)
+# --- FASE 1: El Constructor (Builder) ---
+# Usamos la imagen completa de Go para compilar. Le ponemos un alias "builder".
+FROM golang:1.24.0-alpine AS builder
 
-FROM golang:1.24.0-alpine
-
-# Instalar solo las dependencias mínimas para construir
+# Instalar git, que es necesario para clonar el repositorio
 RUN apk add --no-cache git
 
-# Crear usuario no-root por seguridad
-RUN adduser -D -s /bin/sh -u 1000 -h /home/derper derper
+# Establecer el directorio de trabajo
+WORKDIR /app
 
-# Cambiar al usuario y directorio de trabajo
+# Clonar el código fuente de Tailscale
+RUN git clone https://github.com/tailscale/tailscale.git .
+
+# Compilar el binario de derper.
+# CGO_ENABLED=0 crea un binario estático que no depende de librerías C del sistema.
+# -o /derper guarda el binario compilado en la raíz con el nombre "derper".
+RUN CGO_ENABLED=0 go build -o /derper ./cmd/derper
+
+
+# --- FASE 2: La Imagen Final (Final Stage) ---
+# Empezamos desde una imagen base súper ligera. Alpine es perfecta.
+FROM alpine:latest
+
+# Instalar solo los certificados CA, necesarios para conexiones HTTPS.
+RUN apk add --no-cache ca-certificates
+
+# Crear un grupo y un usuario no-root por seguridad
+RUN addgroup -S derper && adduser -S -G derper -h /home/derper derper
+
+# Copiar el script de entrada. --chown se asegura de que el dueño sea el usuario correcto.
+COPY --chown=derper:derper entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# --- LA MAGIA DEL MULTI-STAGE ---
+# Copiar SOLO el binario compilado desde la fase "builder".
+COPY --from=builder --chown=derper:derper /derper /usr/local/bin/derper
+
+# Cambiar al usuario no-root
 USER derper
 WORKDIR /home/derper
 
-# Instalar el binario de derper. Se guardará en /home/derper/go/bin/
-RUN go install tailscale.com/cmd/derper@main
-
-# Exponer los puertos que usará el servicio
+# Exponer los puertos
 EXPOSE 443/tcp 3478/udp
 
-# El Entrypoint es simplemente el programa que queremos ejecutar.
-# Docker le pasará las variables de entorno para que se configure solo.
-ENTRYPOINT ["/go/bin/derper"]
+# Establecer el punto de entrada para ejecutar nuestro script
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
