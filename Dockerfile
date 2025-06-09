@@ -17,8 +17,10 @@ RUN git clone https://github.com/tailscale/tailscale.git . && \
 FROM alpine:3.18
 
 RUN apk add --no-cache ca-certificates tzdata && \
-    adduser -D -s /bin/sh -u 1000 derper
-
+    adduser -D -s /bin/sh -u 1000 -h /home/derper derper && \
+    mkdir -p /home/derper && \
+    chown derper:derper /home/derper
+    
 ENV DERP_DOMAIN="localhost" \
     DERP_ADDR=":443" \
     DERP_STUN="true" \
