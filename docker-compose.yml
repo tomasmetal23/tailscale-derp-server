@@ -14,7 +14,7 @@ services:
 
     volumes:
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
-      - derper-data:/home/derper/data
+      - derper-data:/var/lib/derper
 
     environment:
       # --- Configuración del Servidor ---
