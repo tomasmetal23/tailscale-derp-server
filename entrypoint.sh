@@ -1,47 +1,51 @@
 #!/bin/sh
-# entrypoint.sh (Versión Final y Corregida)
+# entrypoint.sh (Versión con Persistencia de Clave)
 
 set -e
 
-# Imprimir un log con fecha :)
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-log "Iniciando servidor DERP..."
+# --- CONFIGURACIÓN DE PERSISTENCIA ---
+# Definimos la ruta donde se guardará la clave.
+# Esta ruta estará dentro de un volumen de Docker.
+DATA_DIR="/home/derper/data"
+KEY_FILE="${DATA_DIR}/derper.key"
 
-# --- PUNTO CRÍTICO: INCLUIMOS LA CLAVE PRIVADA ---
-# El script ahora lee DERP_PRIVATE_KEY del entorno
-if [ -z "$DERP_PRIVATE_KEY" ]; then
-    log "ERROR: La variable de entorno DERP_PRIVATE_KEY no está definida."
-    exit 1
+log "Iniciando servidor DERP..."
+log "Hostname: ${DERP_HOSTNAME}"
+
+# --- LÓGICA DE CREACIÓN DE CLAVE SI NO EXISTE ---
+if [ ! -f "$KEY_FILE" ]; then
+    log "¡La clave privada no existe en ${KEY_FILE}!"
+    log "Generando una nueva clave privada..."
+    
+    # Asegurarse de que el directorio de datos existe
+    mkdir -p "$DATA_DIR"
+    
+    # Generar la clave con openssl, añadir el prefijo y guardarla en el archivo
+    echo "private_key:$(openssl rand -hex 32)" > "$KEY_FILE"
+    
+    # Establecer permisos seguros para que solo el usuario derper pueda leerla
+    chmod 600 "$KEY_FILE"
+    
+    log "Nueva clave privada guardada de forma segura."
+else
+    log "Usando la clave privada existente en ${KEY_FILE}."
 fi
 
-CONFIG_FILE="/tmp/derper.json"
+# --- EJECUCIÓN DEL SERVIDOR DERP ---
+# Inicia el binario `derper` usando la clave persistente y las variables de entorno.
+# Este método es más limpio que generar un archivo JSON.
+log "Iniciando derper..."
 
-log "Creando archivo de configuración en $CONFIG_FILE"
-
-# --- PUNTO CRÍTICO 2: GENERAMOS EL JSON COMPLETO Y CORRECTO ---
-# Este JSON ahora contiene la clave privada.
-# Y usa los nombres de variable correctos (con guiones bajos).
-cat > "$CONFIG_FILE" << EOF
-{
-  "hostname": "${DERP_HOSTNAME}",
-  "addr": "${DERP_ADDR}",
-  "stun": true,
-  "stun_port": 3478,
-  "http_port": -1,
-  "cert_mode": "${DERP_CERT_MODE}",
-  "cert_dir": "${DERP_CERT_DIR}",
-  "verify_clients": ${DERP_VERIFY_CLIENTS},
-  "private_key": "${DERP_PRIVATE_KEY}"
-}
-EOF
-
-log "Configuración generada:"
-cat "$CONFIG_FILE"
-
-# --- PUNTO CRÍTICO 3: EJECUTAMOS EL BINARIO DESDE LA RUTA CORRECTA ---
-# Y le pasamos el archivo de configuración con el flag -c
-log "Iniciando derper con el archivo de configuración..."
-exec /usr/local/bin/derper -c "$CONFIG_FILE"
+exec /usr/local/bin/derper \
+    -hostname "${DERP_HOSTNAME}" \
+    -a "${DERP_ADDR:-:443}" \
+    -stun-port "${DERP_STUN_PORT:-3478}" \
+    -certmode "${DERP_CERT_MODE:-manual}" \
+    -certdir "${DERP_CERT_DIR:-/certs}" \
+    -verify-clients \
+    -http-port -1 \
+    -c "$KEY_FILE" # <-- ¡Aquí usamos nuestro archivo de clave persistente!
