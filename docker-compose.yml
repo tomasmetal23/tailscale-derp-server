@@ -1,5 +1,3 @@
-# docker-compose.yml (MODO DEPURACIÓN)
-version: "3.8"
 services:
   derper:
     image: ghcr.io/tomasmetal23/derper:latest
@@ -9,13 +7,12 @@ services:
       - "3478:3478/udp"
       - "8443:443/tcp"
     volumes:
+      - derper-data:/home/derper/data
       - /home/saiyans/stacks/traefik_podman/output/*.saiyans.com.ve:/certs:ro  
-      # Montamos un volumen por si derper intenta escribir en su ruta por defecto.
-      # Como el contenedor es root, tendrá permisos.
-      - derper-data:/var/lib/derper 
     environment:
       - DERP_HOSTNAME=derp.saiyans.com.ve
       - DERP_ADDR=:443
       - DERP_STUN_PORT=3478
+      - DERP_VERIFY_CLIENTS=true
 volumes:
   derper-data:
