@@ -1,40 +1,26 @@
 #!/bin/sh
-# entrypoint.sh (Versión Final y Simplificada)
+# entrypoint.sh (MODO DEPURACIÓN - JSON sin clave, ejecutado como ROOT)
 
 set -e
 
-# --- PARTE 1: GESTIÓN DE PERMISOS ---
-# Usamos el directorio por defecto de derper, así no tenemos que decirle dónde buscar.
-DEFAULT_DATA_DIR="/var/lib/derper"
+CONFIG_FILE="/tmp/derper.json"
 
-# Si se ejecuta como root, arregla los permisos y cambia al usuario 'derper'.
-# Esta es la única razón por la que el script es necesario.
-if [ "$(id -u)" = '0' ]; then
-    echo "Ejecutando como root, arreglando permisos para ${DEFAULT_DATA_DIR}..."
-    
-    # Crea el directorio y se lo asigna al usuario 'derper'.
-    mkdir -p "$DEFAULT_DATA_DIR"
-    chown -R derper:derper "$DEFAULT_DATA_DIR"
-    
-    echo "Permisos arreglados. Cambiando al usuario 'derper'..."
-    # Vuelve a ejecutar este mismo script, pero ahora como el usuario 'derper'.
-    exec su-exec derper "$0" "$@"
-fi
+echo "[DEBUG] Construyendo configuración JSON sin clave privada..."
+cat > "$CONFIG_FILE" << EOF
+{
+  "hostname": "${DERP_HOSTNAME}",
+  "addr": "${DERP_ADDR:-:443}",
+  "stun": true,
+  "stun_port": ${DERP_STUN_PORT:-3478},
+  "http_port": -1,
+  "cert_mode": "manual",
+  "cert_dir": "/certs",
+  "verify_clients": true
+}
+EOF
 
-# --- PARTE 2: EJECUCIÓN (Como usuario 'derper') ---
-# Si llegamos aquí, ya somos el usuario correcto y los permisos están arreglados.
+echo "[DEBUG] Configuración generada:"
+cat "$CONFIG_FILE"
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando servidor DERP (como usuario 'derper')..."
-
-# --- ¡LA LÍNEA DE EJECUCIÓN FINAL Y LIMPIA! ---
-# No hay generación de claves. No hay -c. Solo los flags de configuración.
-# derper se encargará de crear y leer /var/lib/derper/derper.key automáticamente.
-exec /usr/local/bin/derper \
-    -hostname "${DERP_HOSTNAME}" \
-    -a "${DERP_ADDR:-:443}" \
-    -stun \
-    -stun-port "${DERP_STUN_PORT:-3478}" \
-    -certmode "manual" \
-    -certdir "/certs" \
-    -verify-clients \
-    -http-port -1
+echo "[DEBUG] Iniciando derper como root con -c ${CONFIG_FILE}..."
+exec /usr/local/bin/derper -c "$CONFIG_FILE"
