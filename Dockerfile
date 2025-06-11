@@ -1,4 +1,4 @@
-# Dockerfile (Versión Mejorada)
+# Dockerfile (Versión con Corrección de Permisos)
 
 # --- FASE 1: El Constructor (Builder) ---
 FROM golang:1.24.0-alpine AS builder
@@ -8,12 +8,11 @@ WORKDIR /app
 RUN git clone https://github.com/tailscale/tailscale.git .
 RUN CGO_ENABLED=0 go build -o /derper ./cmd/derper
 
-# --- FASE 2: La Imagen Final (Final Stage) ---
+# --- (Final Stage) ---
 FROM alpine:latest
 
-# --- CAMBIO IMPORTANTE AQUÍ ---
-# Instalar certificados Y openssl, que usaremos para generar la clave.
-RUN apk add --no-cache ca-certificates openssl
+
+RUN apk add --no-cache ca-certificates openssl su-exec
 
 RUN addgroup -S derper && adduser -S -G derper -h /home/derper derper
 
@@ -22,7 +21,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY --from=builder --chown=derper:derper /derper /usr/local/bin/derper
 
-USER derper
+
+# El entrypoint ahora gestionará el cambio de usuario.
+# USER derper
+
 WORKDIR /home/derper
 
 EXPOSE 443/tcp 3478/udp
